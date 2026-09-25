@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>2018 MacBook Air T2 × macOS Tahoe 26.7 攻略記録 | LAB 404</title>
+</head>
+
+<body>
+
+  <p><a href="../../index.html">← LAB 404 トップへ戻る</a></p>
+
+  <h1>2018 MacBook Air T2 × macOS Tahoe 26.7 攻略記録</h1>
+
+  <p>
+    2018年モデルのMacBook Airで、公式対応外となる
+    macOS TahoeをT2向けOpenCore Legacy Patcherを使って起動できるか実験した。
+  </p>
+
+  <hr>
+
+  <h2>実験概要</h2>
+
+  <p>
+    今回の目的は、2018 MacBook Air（MacBookAir8,1）に
+    macOS Tahoe 26.7をインストールできるか確認すること。
+  </p>
+
+  <p>
+    普通にアップデートするのではなく、
+    T2 Mac向けに開発されているOpenCore Legacy Patcherの
+    非公式フォークを使用した。
+  </p>
+
+  <p>
+    結論から言うと、今回はインストーラーを起動して
+    言語選択画面まで到達したものの、その先へ進めず終了した。
+  </p>
+
+  <p>
+    ただし、USBインストーラー作成、OpenCore構築、
+    EFIへの導入、T2のセキュリティ設定変更、
+    Tahoeインストーラーの起動までは確認できた。
+  </p>
+
+  <hr>
+
+  <h2>使用したMac</h2>
+
+  <ul>
+    <li>MacBook Air 2018</li>
+    <li>モデル：MacBookAir8,1</li>
+    <li>CPU：Intel Core i5 1.6GHz デュアルコア</li>
+    <li>メモリ：8GB</li>
+    <li>GPU：Intel UHD Graphics 617</li>
+    <li>T2チップ搭載</li>
+    <li>現在のOS：macOS Sonoma 14.8.9</li>
+  </ul>
+
+  <h2>実験対象</h2>
+
+  <ul>
+    <li>macOS Tahoe 26.7</li>
+    <li>Build：25G229</li>
+    <li>OpenCore Legacy Patcher T2 fork</li>
+    <li>OCLP Version：4.0.0.190004.1</li>
+  </ul>
+
+  <hr>
+
+  <h2>なぜTahoeを入れてみるのか</h2>
+
+  <p>
+    このMacBook Airは2018年モデルで、T2チップを搭載している。
+  </p>
+
+  <p>
+    Appleの公式対応範囲だけを見ると、この世代のMacは
+    Tahoeの対象外となっている。
+  </p>
+
+  <p>
+    そこで、T2 Mac向けに開発されている
+    OpenCore Legacy Patcherの実験的な環境を使って、
+    実際にどこまで進めるのかを試してみることにした。
+  </p>
+
+  <p>
+    「動くかもしれない」という情報を見るだけではなく、
+    実際に自分のMacで試して、途中経過と失敗地点を残す。
+  </p>
+
+  <hr>
+
+  <h2>実験開始</h2>
+
+  <h3>1. OCLP T2版を準備</h3>
+
+  <p>
+    T2 Mac向けのOpenCore Legacy Patcher forkを使用。
+  </p>
+
+  <p>
+    今回使用したバージョン：
+  </p>
+
+  <pre>
+4.0.0.190004.1
+  </pre>
+
+  <p>
+    このバージョンはまだ一般利用向けの完成版ではなく、
+    実験的な段階である。
+  </p>
+
+  <h3>2. ダウンロードファイルを確認</h3>
+
+  <p>
+    ダウンロードしたパッケージについてSHA-256を確認。
+  </p>
+
+  <pre>
+27441edf102101f6a965c4b74f2e757bdf19473c019fcc1b2bed21c4d44fc63
+  </pre>
+
+  <p>
+    SHA256SUMSとの一致を確認した。
+  </p>
+
+  <h3>3. macOS Tahoeインストーラーを準備</h3>
+
+  <p>
+    OCLPからの自動抽出は途中で失敗した。
+  </p>
+
+  <p>
+    そのため、別の方法でInstallAssistant.pkgを展開し、
+    Tahoeのインストーラーアプリを作成。
+  </p>
+
+  <p>
+    その後、USBメモリへmacOS Tahoeインストーラーを作成した。
+  </p>
+
+  <p>
+    USBのボリューム名：
+  </p>
+
+  <pre>
+Install macOS Tahoe
+  </pre>
+
+  <h3>4. OpenCoreを構築</h3>
+
+  <p>
+    MacBookAir8,1を指定してOpenCoreを構築。
+  </p>
+
+  <p>
+    構築時にはT2 Macとして認識され、
+    Secure EnclaveやAPFS Keybagを保護するため、
+    ネイティブのSMBIOSを維持する設定となった。
+  </p>
+
+  <p>
+    OpenCoreはUSBのEFIへインストール。
+  </p>
+
+  <hr>
+
+  <h2>T2側の設定</h2>
+
+  <p>
+    外部メディアから起動するため、
+    T2のセキュリティ設定を変更。
+  </p>
+
+  <ul>
+    <li>Find My：無効</li>
+    <li>Secure Boot：No Security</li>
+    <li>外部メディアからの起動：許可</li>
+  </ul>
+
+  <p>
+    RecoveryのTerminalからも必要な設定を確認した。
+  </p>
+
+  <pre>
+csrutil disable
+csrutil authenticated-root disable
+  </pre>
+
+  <p>
+    その後、Sonoma側から状態を確認。
+  </p>
+
+  <p>
+    Authenticated Rootは無効になっていることを確認した。
+  </p>
+
+  <hr>
+
+  <h2>いよいよ起動</h2>
+
+  <p>
+    MacBook Airを再起動。
+  </p>
+
+  <p>
+    Optionキーから起動ディスクを選択し、
+    EFI Boot → OpenCore → Install macOS Tahoe
+    の順番で起動した。
+  </p>
+
+  <p>
+    そして……
+  </p>
+
+  <h2>起動した</h2>
+
+  <p>
+    まず言語選択画面まで到達した。
+  </p>
+
+  <p>
+    つまり、
+  </p>
+
+  <ul>
+    <li>USBインストーラー作成成功</li>
+    <li>OpenCore起動成功</li>
+    <li>T2 Mac上でOpenCore経由のTahoeインストーラー起動成功</li>
+    <li>GUIの言語選択画面まで到達</li>
+  </ul>
+
+  <p>
+    ここまでは確認できた。
+  </p>
+
+  <hr>
+
+  <h2>しかし、ここから先へ進まない</h2>
+
+  <p>
+    言語選択画面で停止。
+  </p>
+
+  <p>
+    日本語を選択したところ、
+    次へ進むボタンがグレーアウトした状態になった。
+  </p>
+
+  <p>
+    別の起動でもVerboseログを確認したが、
+    AppleKeyStore、Bluetooth、IOConsoleUsersなどの
+    ログが流れたところで停止した。
+  </p>
+
+  <p>
+    また、以下のようなKernelCollections関連のエラーも確認された。
+  </p>
+
+  <pre>
+Err(0xE)
+System\Library\KernelCollections\BootKernelExtensions.kc
+BootKernelExtensions.kc.development
+  </pre>
+
+  <p>
+    Panicして再起動するというより、
+    インストーラーの起動途中で処理が進まなくなる状態だった。
+  </p>
+
+  <hr>
+
+  <h2>何度か試した</h2>
+
+  <p>
+    USBを作り直したり、OpenCoreを確認したりしながら
+    複数回起動を試した。
+  </p>
+
+  <p>
+    結果として、同じような場所で停止する。
+  </p>
+
+  <p>
+    内蔵SSDの消去やSonoma環境の破壊は行わなかった。
+  </p>
+
+  <p>
+    既存環境を残したまま、外部USBからの実験だけで終了した。
+  </p>
+
+  <hr>
+
+  <h2>今回確認できたこと</h2>
+
+  <ul>
+    <li>MacBookAir8,1でT2向けOpenCoreを起動できた</li>
+    <li>macOS Tahoe 26.7のUSBインストーラーを作成できた</li>
+    <li>OpenCore経由でTahoeインストーラーを起動できた</li>
+    <li>GUIの言語選択画面まで到達できた</li>
+    <li>内蔵Sonoma環境を維持したまま実験できた</li>
+    <li>現時点ではインストール完了まで到達できなかった</li>
+  </ul>
+
+  <hr>
+
+  <h2>今回の結果</h2>
+
+  <h3>FAIL</h3>
+
+  <p>
+    macOS Tahoe 26.7のインストール完了には到達できなかった。
+  </p>
+
+  <p>
+    ただし、単純な「起動しなかった」という結果ではない。
+  </p>
+
+  <p>
+    T2 Mac上でOpenCoreを起動し、
+    Tahoeインストーラーを立ち上げ、
+    GUIまで到達するところまでは確認できた。
+  </p>
+
+  <p>
+    現在のT2向けOCLP環境では、
+    MacBookAir8,1でTahoeインストーラーを最後まで動作させるには
+    まだ問題が残っていると考えられる。
+  </p>
+
+  <p>
+    今回の実験では、そこから先へ進むことはできなかった。
+  </p>
+
+  <hr>
+
+  <h2>研究メモ</h2>
+
+  <p>
+    失敗したからといって、この実験が無駄だったわけではない。
+  </p>
+
+  <p>
+    「MacBookAir8,1ではTahoeが動かなかった」
+    だけではなく、
+  </p>
+
+  <p>
+    「どの環境を用意し、どこまで起動し、
+    どの地点で止まったのか」
+  </p>
+
+  <p>
+    まで記録することで、次に同じ実験をする人の基準点になる。
+  </p>
+
+  <p>
+    特にT2 Macは通常のIntel Macとは違う部分が多い。
+    今後OCLP側の対応が進んだ場合、
+    この記録を使って再実験できる。
+  </p>
+
+  <hr>
+
+  <h2>次回の条件</h2>
+
+  <ul>
+    <li>OCLP T2 forkの新バージョンが公開された場合</li>
+    <li>Tahoeのアップデートで状況が変わった場合</li>
+    <li>MacBookAir8,1向けの新しい修正が入った場合</li>
+    <li>今回停止したKernelCollections周辺の問題が解決した場合</li>
+  </ul>
+
+  <p>
+    条件が変わったら再挑戦する。
+  </p>
+
+  <hr>
+
+  <h2>LAB 404の記録</h2>
+
+  <p>
+    実験は成功だけを記録するものではない。
+  </p>
+
+  <p>
+    起動しない。
+    固まる。
+    エラーが出る。
+    何度やっても同じ場所で止まる。
+  </p>
+
+  <p>
+    それも実験結果。
+  </p>
+
+  <p>
+    LAB 404では、成功・失敗・途中経過を含めて記録していく。
+  </p>
+
+  <hr>
+
+  <p>
+    <a href="../../index.html">← LAB 404 トップへ戻る</a>
+  </p>
+
+</body>
+</html>
